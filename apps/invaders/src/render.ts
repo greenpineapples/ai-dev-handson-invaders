@@ -2,6 +2,7 @@
 
 import { HEIGHT, WIDTH } from "./game/config";
 import type { Enemy, GameState, Rect } from "./game/types";
+import { formatHighScore } from "./highscore";
 
 const COLORS = {
   background: "#0b1020",
@@ -20,7 +21,7 @@ const ENEMY_FRAMES = [
   ["00100100", "10011001", "11111111", "11011011", "11111111", "00111100", "01000010", "10000001"],
 ];
 
-export function render(ctx: CanvasRenderingContext2D, state: GameState, time: number): void {
+export function render(ctx: CanvasRenderingContext2D, state: GameState, time: number, highScore: number): void {
   ctx.fillStyle = COLORS.background;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
@@ -36,7 +37,7 @@ export function render(ctx: CanvasRenderingContext2D, state: GameState, time: nu
   ctx.fillStyle = COLORS.ground;
   ctx.fillRect(0, HEIGHT - 28, WIDTH, 2);
 
-  drawHud(ctx, state);
+  drawHud(ctx, state, highScore);
   drawOverlay(ctx, state);
 }
 
@@ -59,12 +60,14 @@ function drawPlayer(ctx: CanvasRenderingContext2D, p: Rect): void {
   ctx.fillRect(p.x + p.w / 2 - 2, p.y, 4, p.h * 0.25);
 }
 
-function drawHud(ctx: CanvasRenderingContext2D, state: GameState): void {
+function drawHud(ctx: CanvasRenderingContext2D, state: GameState, highScore: number): void {
   ctx.fillStyle = COLORS.text;
   ctx.font = "16px ui-monospace, Menlo, Consolas, monospace";
   ctx.textBaseline = "top";
   ctx.textAlign = "left";
   ctx.fillText(`SCORE ${String(state.score).padStart(5, "0")}`, 16, 16);
+  ctx.textAlign = "center";
+  ctx.fillText(formatHighScore(highScore), WIDTH / 2, 16);
   ctx.textAlign = "right";
   ctx.fillText(`LIVES ${"▲".repeat(Math.max(0, state.lives))}`, WIDTH - 16, 16);
 }

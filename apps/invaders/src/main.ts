@@ -1,6 +1,7 @@
 import "./style.css";
 import { HEIGHT, WIDTH } from "./game/config";
 import { createGame, step } from "./game/game";
+import { loadHighScore, updateHighScore } from "./highscore";
 import { createKeyboard } from "./input";
 import { render } from "./render";
 
@@ -17,14 +18,20 @@ ctx.scale(scale, scale);
 
 const readInput = createKeyboard();
 let state = createGame();
+let highScore = loadHighScore();
 let last = performance.now();
 
 function frame(now: number) {
   // タブを切り替えて戻ったときに一気に進まないよう、1 フレームの最大を 50ms にする
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
+  const prevStatus = state.status;
   state = step(state, readInput(), dt);
-  render(ctx!, state, now / 1000);
+  // ゲームオーバー／クリアになった瞬間に 1 回だけハイスコアを更新する
+  if (prevStatus === "playing" && (state.status === "over" || state.status === "clear")) {
+    highScore = updateHighScore(highScore, state.score);
+  }
+  render(ctx!, state, now / 1000, highScore);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
