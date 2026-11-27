@@ -28,22 +28,20 @@ export function loadHighScore(storage: ScoreStorage | null = getDefaultStorage()
 
 /**
  * 今回のスコアがハイスコアより高ければ保存する。新しいハイスコアを返す。
- * 保存に失敗しても、遊んでいる間の表示は更新する（ゲームは止めない）。
+ * 保存できないとき（localStorage が使えない）は例外を出さず、ハイスコアは変えない（0 のまま）。
  */
 export function updateHighScore(
   current: number,
   score: number,
   storage: ScoreStorage | null = getDefaultStorage(),
 ): number {
-  if (score <= current) return current;
-  if (storage) {
-    try {
-      storage.setItem(KEY, String(score));
-    } catch {
-      // 保存できなくても続ける
-    }
+  if (score <= current || !storage) return current;
+  try {
+    storage.setItem(KEY, String(score));
+    return score;
+  } catch {
+    return current;
   }
-  return score;
 }
 
 /** 画面に出す形（HI 00310） */

@@ -44,11 +44,11 @@ describe("highscore", () => {
     expect(loadHighScore(s)).toBe(0);
   });
 
-  it("localStorage が使えなくても例外を出さない（読みは 0）", () => {
+  it("localStorage が使えなくても例外を出さず、ハイスコアは 0 のまま", () => {
     expect(loadHighScore(null)).toBe(0);
     expect(loadHighScore(broken)).toBe(0);
-    expect(updateHighScore(0, 100, null)).toBe(100);
-    expect(updateHighScore(0, 100, broken)).toBe(100);
+    expect(updateHighScore(0, 100, null)).toBe(0);
+    expect(updateHighScore(0, 100, broken)).toBe(0);
   });
 
   it("5 桁・0 埋めで表示する", () => {
