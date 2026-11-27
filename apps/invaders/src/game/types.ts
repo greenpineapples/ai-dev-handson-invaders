@@ -20,6 +20,8 @@ export type GameState = {
   /** 隊列の横の向き（1 = 右・-1 = 左） */
   direction: 1 | -1;
   score: number;
+  /** 今の面の番号（1 から始まる） */
+  wave: number;
   lives: number;
   /** 次に撃てるまでの残り秒数 */
   cooldown: number;

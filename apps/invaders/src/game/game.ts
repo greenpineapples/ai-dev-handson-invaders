@@ -35,17 +35,19 @@ export function createGame(): GameState {
     enemyBullets: [],
     direction: 1,
     score: 0,
+    wave: 1,
     lives: PLAYER.lives,
     cooldown: 0,
     enemyFireTimer: ENEMY_FIRE.interval,
   };
 }
 
-/** 残りの敵の数に応じた隊列の横の速さ。減るほど速くなる。 */
-export function formationSpeed(alive: number, total: number): number {
-  if (total <= 1 || alive <= 0) return FORMATION.baseSpeed * FORMATION.maxSpeedRate;
+/** 残りの敵の数と面に応じた隊列の横の速さ。敵が減るほど・面が進むほど速くなる。 */
+export function formationSpeed(alive: number, total: number, wave = 1): number {
+  const waveRate = FORMATION.waveSpeedRate ** (wave - 1);
+  if (total <= 1 || alive <= 0) return FORMATION.baseSpeed * FORMATION.maxSpeedRate * waveRate;
   const killedRate = (total - alive) / (total - 1);
-  return FORMATION.baseSpeed * (1 + (FORMATION.maxSpeedRate - 1) * killedRate);
+  return FORMATION.baseSpeed * (1 + (FORMATION.maxSpeedRate - 1) * killedRate) * waveRate;
 }
 
 /**
@@ -57,6 +59,13 @@ export function step(state: GameState, input: Input, dt: number, rng: Rng = Math
     if (input.start) {
       const next = createGame();
       next.status = "playing";
+      // クリアのあとは次の面へ進む。引き継ぐのは score・lives・wave だけで、
+      // 自機の位置・弾・タイマーなどは新しいゲームと同じ最初の状態に戻す。
+      if (state.status === "clear") {
+        next.score = state.score;
+        next.lives = state.lives;
+        next.wave = state.wave + 1;
+      }
       return next;
     }
     return state;
@@ -90,7 +99,7 @@ function moveFormation(state: GameState, dt: number): void {
   const alive = state.enemies.filter((e) => e.alive);
   if (alive.length === 0) return;
 
-  const dx = state.direction * formationSpeed(alive.length, state.enemies.length) * dt;
+  const dx = state.direction * formationSpeed(alive.length, state.enemies.length, state.wave) * dt;
   const minX = Math.min(...alive.map((e) => e.x)) + dx;
   const maxX = Math.max(...alive.map((e) => e.x + e.w)) + dx;
   const hitEdge = minX < FORMATION.margin || maxX > WIDTH - FORMATION.margin;
