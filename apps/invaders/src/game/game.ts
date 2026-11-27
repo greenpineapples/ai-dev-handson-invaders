@@ -59,7 +59,8 @@ export function step(state: GameState, input: Input, dt: number, rng: Rng = Math
     if (input.start) {
       const next = createGame();
       next.status = "playing";
-      // クリアのあとは、スコアと残機を引き継いで次の面へ進む
+      // クリアのあとは次の面へ進む。引き継ぐのは score・lives・wave だけで、
+      // 自機の位置・弾・タイマーなどは新しいゲームと同じ最初の状態に戻す。
       if (state.status === "clear") {
         next.score = state.score;
         next.lives = state.lives;
