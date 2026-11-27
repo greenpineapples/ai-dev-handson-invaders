@@ -29,6 +29,7 @@ export const FORMATION = {
   top: 80,
   baseSpeed: 30, // 全員そろっているときの横の速さ（ピクセル／秒）
   maxSpeedRate: 4, // 残り 1 体のときに baseSpeed の何倍になるか
+  waveSpeedRate: 1.2, // 面が 1 つ進むごとに横の速さが何倍になるか（面 1 は等倍）
   stepDown: 16, // 端に着いたときに下がる量
   margin: 12, // 左右の端からの余白
 };

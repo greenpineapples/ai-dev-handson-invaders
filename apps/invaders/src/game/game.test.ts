@@ -113,3 +113,72 @@ describe("step", () => {
     expect(s.status).toBe("over");
   });
 });
+
+describe("面（ウェーブ）", () => {
+  function cleared(): GameState {
+    const s = playing();
+    for (const e of s.enemies) e.alive = false;
+    step(s, NONE, 0.01, never);
+    return s;
+  }
+
+  it("最初の面は 1", () => {
+    expect(createGame().wave).toBe(1);
+    expect(playing().wave).toBe(1);
+  });
+
+  it("clear で start を押すと、スコアと残機はそのままで次の面に進み、隊列が並び直す", () => {
+    const s = cleared();
+    expect(s.status).toBe("clear");
+    s.score = 1234;
+    s.lives = 2;
+    const next = step(s, { ...NONE, start: true }, 0, never);
+    expect(next.status).toBe("playing");
+    expect(next.wave).toBe(2);
+    expect(next.score).toBe(1234);
+    expect(next.lives).toBe(2);
+    expect(next.enemies).toEqual(createFormation());
+    expect(next.direction).toBe(1);
+  });
+
+  it("面を続けてクリアすると、面の番号が 1 ずつ増える", () => {
+    let s = cleared();
+    s = step(s, { ...NONE, start: true }, 0, never);
+    for (const e of s.enemies) e.alive = false;
+    step(s, NONE, 0.01, never);
+    s = step(s, { ...NONE, start: true }, 0, never);
+    expect(s.wave).toBe(3);
+  });
+
+  it("over で start を押すと、面 1・スコア 0 から始まる", () => {
+    const s = cleared();
+    const s2 = step(s, { ...NONE, start: true }, 0, never);
+    s2.score = 500;
+    s2.status = "over";
+    const next = step(s2, { ...NONE, start: true }, 0, never);
+    expect(next.status).toBe("playing");
+    expect(next.wave).toBe(1);
+    expect(next.score).toBe(0);
+    expect(next.lives).toBe(PLAYER.lives);
+  });
+
+  it("隊列の横の速さは、面ごとに 1.2 倍ずつ速くなる（面 1 は今と同じ）", () => {
+    expect(FORMATION.waveSpeedRate).toBe(1.2);
+    expect(formationSpeed(45, 45, 1)).toBe(FORMATION.baseSpeed);
+    expect(formationSpeed(45, 45)).toBe(FORMATION.baseSpeed);
+    expect(formationSpeed(45, 45, 2)).toBeCloseTo(FORMATION.baseSpeed * 1.2);
+    expect(formationSpeed(45, 45, 3)).toBeCloseTo(FORMATION.baseSpeed * 1.2 * 1.2);
+    expect(formationSpeed(1, 45, 2)).toBeCloseTo(FORMATION.baseSpeed * FORMATION.maxSpeedRate * 1.2);
+  });
+
+  it("面 2 では、隊列が 1 フレームで面 1 の 1.2 倍動く", () => {
+    const dt = 0.1;
+    const s1 = playing();
+    const x1 = s1.enemies[0].x;
+    step(s1, NONE, dt, never);
+    const s2 = step(cleared(), { ...NONE, start: true }, 0, never);
+    const x2 = s2.enemies[0].x;
+    step(s2, NONE, dt, never);
+    expect(s2.enemies[0].x - x2).toBeCloseTo((s1.enemies[0].x - x1) * 1.2);
+  });
+});
